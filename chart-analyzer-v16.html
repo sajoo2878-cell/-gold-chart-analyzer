@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#080d1c">
+<title>Chart Analyzer V1.6 PRO Live</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080d1c;color:#eef2ff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+.wrap{max-width:1050px;margin:auto;padding:16px}
+h1{margin:4px 0;font-size:28px}.sub{color:#9ca8c7;margin:7px 0 12px}
+.card{background:#11192d;border:1px solid #29375a;border-radius:18px;padding:16px;margin:13px 0}
+.section{font-weight:800;font-size:18px;margin-bottom:12px}
+.grid,.results{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.grid{grid-template-columns:repeat(4,1fr)}
+label{display:block;margin-bottom:6px;color:#aeb9d6;font-size:13px}
+input,select,button{width:100%;padding:13px;border-radius:11px;border:1px solid #354568;background:#0b1224;color:#fff;font-size:15px}
+button{background:#2563eb;border:0;font-weight:800;font-size:16px;cursor:pointer}
+.upload{display:block;border:2px dashed #405174;text-align:center;padding:27px;border-radius:15px;cursor:pointer;color:#b8c2dc}
+#preview{max-width:100%;max-height:470px;display:none;margin:15px auto;border-radius:12px}
+.box{padding:14px;border-radius:13px;background:#0b1224;border:1px solid #29385b}
+.buy{border-color:#167044}.sell{border-color:#8b3030}.warn{border-color:#876b20}
+.big{font-size:20px;font-weight:800;margin-top:6px}.muted,.note{color:#9ca8c7}
+.note{font-size:13px;line-height:1.8}
+.live-badge{display:inline-block;padding:7px 11px;border-radius:999px;background:#102b1d;color:#5ee28b;font-size:13px}
+.status{margin-top:10px;text-align:center;color:#9ca8c7;line-height:1.7}
+@media(max-width:700px){.grid,.results{grid-template-columns:1fr 1fr}.wrap{padding:12px}h1{font-size:25px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>📊 Chart Analyzer V1.6 PRO Live</h1>
+<div class="sub">اتجاه • دعم • مقاومة • دخول • وقف • TP1/TP2/TP3 • RSI • MACD • ATR • تأكيد الصفقة</div>
+<div id="liveBadge" class="live-badge">🟡 جاري ربط محرك التحليل...</div>
+
+<div class="card">
+<div class="section">⚙️ بيانات الشارت</div>
+<div class="grid">
+<div><label>الرمز</label><input id="symbol" value="XAUUSD" placeholder="XAUUSD / BTCUSDT / EURUSD"></div>
+<div><label>الفريم</label><select id="tf"><option>M1</option><option selected>M5</option><option>M15</option><option>M30</option><option>H1</option><option>H4</option><option>D1</option></select></div>
+<div><label>أعلى سعر</label><input id="high" type="number" step="any"></div>
+<div><label>أدنى سعر</label><input id="low" type="number" step="any"></div>
+<div><label>السعر الحالي</label><input id="price" type="number" step="any"></div>
+</div>
+</div>
+
+<div class="card">
+<label class="upload" for="file">📷 اضغط هنا وارفع صورة الشارت</label>
+<input id="file" type="file" accept="image/*" hidden>
+<img id="preview">
+<div class="note">الصورة للعرض. التحليل المباشر يعتمد على بيانات محرك السوق. High/Low تُحسب من شموع الفريم المختار.</div>
+</div>
+
+<div class="card"><button id="analyze">🔎 تحليل الشارت الآن</button></div>
+
+<div id="out" class="card">
+<div class="section">🔥 نتيجة التحليل المباشر</div>
+<div class="results">
+<div class="box"><span class="muted">الإشارة</span><div id="liveSignal" class="big">-</div></div>
+<div class="box"><span class="muted">قوة الإشارة</span><div id="liveConfidence" class="big">-</div></div>
+<div class="box"><span class="muted">الزخم</span><div id="liveMomentum" class="big">-</div></div>
+</div>
+
+<div class="results" style="margin-top:10px">
+<div class="box"><span class="muted">5M</span><div id="liveTrend5" class="big">-</div></div>
+<div class="box"><span class="muted">15M</span><div id="liveTrend15" class="big">-</div></div>
+<div class="box"><span class="muted">30M</span><div id="liveTrend30" class="big">-</div></div>
+<div class="box"><span class="muted">1H</span><div id="liveTrend60" class="big">-</div></div>
+</div>
+
+<div class="results" style="margin-top:10px">
+<div class="box"><span class="muted">RSI</span><div id="liveRSI" class="big">-</div></div>
+<div class="box"><span class="muted">MACD</span><div id="liveMACD" class="big">-</div></div>
+<div class="box"><span class="muted">ATR</span><div id="liveATR" class="big">-</div></div>
+</div>
+
+<div class="results" style="margin-top:10px">
+<div class="box"><span class="muted">Resistance 2</span><div id="liveR2" class="big">-</div></div>
+<div class="box"><span class="muted">Resistance 1</span><div id="liveR1" class="big">-</div></div>
+<div class="box"><span class="muted">Support 1</span><div id="liveS1" class="big">-</div></div>
+<div class="box"><span class="muted">Support 2</span><div id="liveS2" class="big">-</div></div>
+</div>
+
+<div class="results" style="margin-top:10px">
+<div class="box buy"><span class="muted">Entry</span><div id="liveEntry" class="big">-</div></div>
+<div class="box sell"><span class="muted">Stop Loss</span><div id="liveSL" class="big">-</div></div>
+<div class="box buy"><span class="muted">TP1 / TP2</span><div id="liveTP" class="big">-</div></div>
+<div class="box buy"><span class="muted">TP3 • امتداد</span><div id="liveTP3" class="big">-</div></div>
+<div class="box warn"><span class="muted">Risk / Reward</span><div id="liveRR" class="big">-</div></div>
+</div>
+
+<p id="liveReason" class="note">جاري انتظار التحليل...</p>
+</div>
+
+<div class="card">
+<div class="section">🧠 تأكيد الصفقة</div>
+<div class="results">
+<div class="box"><span class="muted">توافق الاتجاه</span><div id="confirmTrend" class="big">-</div></div>
+<div class="box"><span class="muted">تأكيد RSI</span><div id="confirmRSI" class="big">-</div></div>
+<div class="box"><span class="muted">تأكيد MACD</span><div id="confirmMACD" class="big">-</div></div>
+</div>
+<div class="results" style="margin-top:10px">
+<div class="box"><span class="muted">قرب الدعم/المقاومة</span><div id="confirmLevel" class="big">-</div></div>
+<div class="box"><span class="muted">نقاط التأكيد</span><div id="confirmScore" class="big">-</div></div>
+<div class="box warn"><span class="muted">القرار النهائي</span><div id="confirmDecision" class="big">-</div></div>
+</div>
+<p id="confirmReason" class="note">جاري حساب توافق الشروط...</p>
+</div>
+
+<div class="card">
+<div class="section">📌 الخلاصة</div>
+<div class="results">
+<div class="box"><span class="muted">الاتجاه</span><div id="trend" class="big">-</div></div>
+<div class="box"><span class="muted">الدعم</span><div id="support" class="big">-</div></div>
+<div class="box"><span class="muted">المقاومة</span><div id="resist" class="big">-</div></div>
+</div>
+<div class="results" style="margin-top:10px">
+<div class="box buy"><span class="muted">BUY Entry</span><div id="buyEntry" class="big">-</div></div>
+<div class="box sell"><span class="muted">SELL Entry</span><div id="sellEntry" class="big">-</div></div>
+<div class="box warn"><span class="muted">الحالة</span><div id="decision" class="big">-</div></div>
+</div>
+</div>
+</div>
+
+<!-- المحرك القديم، مخفي ويعمل كمصدر البيانات -->
+<iframe id="legacyEngine" src="https://sajoo2878-cell.github.io/bot.html" title="Live Analysis Engine"
+style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;left:-20px;bottom:-20px;border:0"></iframe>
+
+<script>
+const $=id=>document.getElementById(id);
+const frame=$("legacyEngine");
+const preview=$("preview");
+$("file").onchange=()=>{
+ const f=$("file").files[0]; if(!f)return;
+ preview.src=URL.createObjectURL(f); preview.style.display="block";
+};
+
+function oldDoc(){
+ try{return frame.contentWindow.document}catch(e){return null}
+}
+function txt(id){
+ const d=oldDoc(),el=d&&d.getElementById(id);
+ return el?(el.textContent||"").trim():"";
+}
+function set(id,v){if($(id))$(id).textContent=v||"-"}
+
+async function fetchHighLow(){
+ try{
+  const tf=$("tf").value;
+  const interval={M1:"5m",M5:"5m",M15:"15m",M30:"30m",H1:"1h",H4:"1h",D1:"1h"}[tf]||"5m";
+  const res=await fetch(
+    "https://biquote.io/api/XAUUSD/ohlc?interval="+interval+"&limit=300",
+    {cache:"no-store"}
+  );
+  if(!res.ok) throw new Error("OHLC "+res.status);
+  const data=await res.json();
+  if(!Array.isArray(data.bars)||!data.bars.length) throw new Error("No bars");
+  const bars=data.bars.slice(-50);
+  const highs=bars.map(x=>Number(x.high)).filter(Number.isFinite);
+  const lows=bars.map(x=>Number(x.low)).filter(Number.isFinite);
+  if(!highs.length||!lows.length) throw new Error("Invalid OHLC");
+  $("high").value=Math.max(...highs).toFixed(2);
+  $("low").value=Math.min(...lows).toFixed(2);
+  return true;
+ }catch(e){
+  console.warn("High/Low:",e);
+  return false;
+ }
+
+}
+
+function calcTP3(signal,entry,tp2){
+ const e=Number(String(entry).replace(/[^0-9.-]/g,""));
+ const t=Number(String(tp2).replace(/[^0-9.-]/g,""));
+ if(!Number.isFinite(e)||!Number.isFinite(t))return "-";
+ const d=Math.abs(t-e);
+ if(!d)return "-";
+ return (signal==="BUY"?t+d*0.5:t-d*0.5).toFixed(2);
+}
+
+function norm(v){
+ return String(v||"").toUpperCase().replace(/[🟢🔴🟡📈📉]/g,"").trim();
+}
+function num(v){
+ const m=String(v||"").replace(/,/g,"").match(/-?\d+(?:\.\d+)?/);
+ return m?Number(m[0]):NaN;
+}
+function trendDirection(v){
+ const x=norm(v);
+ if(/UP|BULL|صاعد|صعود|شراء|BUY/.test(x))return "BUY";
+ if(/DOWN|BEAR|هابط|هبوط|بيع|SELL/.test(x))return "SELL";
+ return "NEUTRAL";
+}
+function confirmTrade(signal, trend5, trend15, trend30, trend60, rsiText, macdText, priceText, r1Text, s1Text){
+ const sig=signal==="BUY"?"BUY":signal==="SELL"?"SELL":"WAIT";
+ if(sig==="WAIT"){
+   return {score:0, trend:"محايد", rsi:"محايد", macd:"محايد", level:"غير محسوم", decision:"🟡 WAIT", reason:"الإشارة الأساسية WAIT، لذلك لا يوجد تأكيد دخول."};
+ }
+ let score=0, reasons=[];
+ const trends=[trend5,trend15,trend30,trend60].map(trendDirection);
+ const aligned=trends.filter(x=>x===sig).length;
+ if(aligned>=3){score+=3; reasons.push("اتجاه أغلب الفريمات متوافق");}
+ else if(aligned===2){score+=2; reasons.push("فريمان متوافقان مع الإشارة");}
+ else {reasons.push("الاتجاهات غير متوافقة بالكامل");}
+ const rsi=num(rsiText);
+ let rsiState="محايد";
+ if(Number.isFinite(rsi)){
+   if(sig==="BUY" && rsi>=50 && rsi<75){score+=2;rsiState="مؤيد BUY";}
+   else if(sig==="SELL" && rsi<=50 && rsi>25){score+=2;rsiState="مؤيد SELL";}
+   else if(sig==="BUY" && rsi<30){score+=1;rsiState="تشبع بيع";}
+   else if(sig==="SELL" && rsi>70){score+=1;rsiState="تشبع شراء";}
+   else {rsiState="غير مؤكد";}
+ } else rsiState="غير متاح";
+ const md=norm(macdText);
+ const macdDir=/BUY|BULL|UP|صاعد|شراء/.test(md)?"BUY":/SELL|BEAR|DOWN|هابط|بيع/.test(md)?"SELL":"NEUTRAL";
+ const macdState=macdDir===sig?"مؤيد":"غير مؤكد";
+ if(macdDir===sig)score+=2;
+ const p=num(priceText), r1=num(r1Text), s1=num(s1Text);
+ let levelState="غير محسوم";
+ if(Number.isFinite(p)){
+   if(sig==="BUY" && Number.isFinite(s1) && p>=s1){score+=1;levelState="فوق الدعم";}
+   if(sig==="SELL" && Number.isFinite(r1) && p<=r1){score+=1;levelState="تحت المقاومة";}
+ }
+ let decision="🟡 WAIT";
+ if(score>=7) decision=sig==="BUY"?"🟢 BUY قوي":"🔴 SELL قوي";
+ else if(score>=5) decision=sig==="BUY"?"🟢 BUY مؤكد":"🔴 SELL مؤكد";
+ else if(score>=3) decision=sig==="BUY"?"🟡 BUY مشروط":"🟡 SELL مشروط";
+ else decision="⚪ انتظار";
+ return {score,trend:`${aligned}/4`,rsi:rsiState,macd:macdState,level:levelState,decision,reason:reasons.join(" • ")};
+}
+
+function sync(){
+ const d=oldDoc(); if(!d)return false;
+ const signal=txt("signal")||"WAIT";
+ const price=txt("price")||"-";
+ const confidence=txt("confidence")||"-";
+ const trend5=txt("trend5")||"-";
+ const trend15=txt("trend15")||"-";
+ const trend30=txt("trend30")||"-";
+ const trend60=txt("trend60")||"-";
+ const momentum=txt("momentum")||"-";
+ const r1=txt("r1")||"-",r2=txt("r2")||"-";
+ const s1=txt("s1")||"-",s2=txt("s2")||"-";
+ const entry=txt("entry")||"-",sl=txt("sl")||"-";
+ const tp1=txt("tp1")||"-",tp2=txt("tp2")||"-";
+ const rr=txt("rr")||"-";
+ const reason=txt("signalReason")||"";
+ const rsi=txt("rsi")||"-",macd=txt("macd")||"-",atr=txt("atr")||"-";
+
+ if(!price && !confidence)return false;
+
+ set("liveSignal",signal==="BUY"?"🟢 BUY":signal==="SELL"?"🔴 SELL":"🟡 WAIT");
+ set("liveConfidence",confidence);
+ set("liveMomentum",momentum);
+ set("liveTrend5",trend5);set("liveTrend15",trend15);
+ set("liveTrend30",trend30);set("liveTrend60",trend60);
+ set("liveRSI",rsi);set("liveMACD",macd);set("liveATR",atr);
+ set("liveR2",r2);set("liveR1",r1);set("liveS1",s1);set("liveS2",s2);
+ set("liveEntry",entry);set("liveSL",sl);set("liveTP",tp1+" / "+tp2);set("liveTP3",calcTP3(signal,entry,tp2));set("liveRR",rr);
+ set("liveReason",reason||"لا يوجد سبب إضافي متاح");
+ const c=confirmTrade(signal,trend5,trend15,trend30,trend60,rsi,macd,price,r1,s1);
+ set("confirmTrend",c.trend);
+ set("confirmRSI",c.rsi);
+ set("confirmMACD",c.macd);
+ set("confirmLevel",c.level);
+ set("confirmScore",c.score+"/10");
+ set("confirmDecision",c.decision);
+ set("confirmReason",c.reason);
+
+
+ set("trend",trend5);set("support",s1);set("resist",r1);
+ set("buyEntry",signal==="BUY"?entry:"مراقبة "+entry);
+ set("sellEntry",signal==="SELL"?entry:"مراقبة "+entry);
+ set("decision",signal==="BUY"?"🟢 BUY":signal==="SELL"?"🔴 SELL":"🟡 WAIT");
+
+ if(price&&!$("price").matches(":focus"))$("price").value=price;
+ $("liveBadge").textContent="🟢 LIVE ENGINE متصل • "+signal+" • "+price;
+ return true;
+}
+
+async function refreshAll(){
+ await fetchHighLow();
+ sync();
+}
+
+
+frame.addEventListener("load",()=>{
+ setTimeout(()=>{
+  try{if(frame.contentWindow.updateAll)frame.contentWindow.updateAll()}catch(e){}
+  setTimeout(refreshAll,1800);
+ },700);
+});
+
+$("analyze").onclick=()=>{
+ $("liveBadge").textContent="🟡 جاري تحديث التحليل...";
+ try{
+  if(frame.contentWindow.updateAll)frame.contentWindow.updateAll();
+ }catch(e){
+  $("liveBadge").textContent="🔴 تعذر الاتصال بالمحرك";
+ }
+ setTimeout(refreshAll,1500);
+ setTimeout(refreshAll,3500);
+};
+
+setInterval(refreshAll,10000);
+</script>
+</body>
+</html>
